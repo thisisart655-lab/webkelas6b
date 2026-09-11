@@ -22,17 +22,18 @@ import {
 
 // Ganti nilai di bawah ini sesuai Firebase Console Anda!
 const firebaseConfig = {
-  apiKey: "AIzaSyYOUR_API_KEY_HERE",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBJETCKPOLwFnVp8Q8Zev6tL_MJAsxAAJc",
+  authDomain: "kelas6b-bfc03.firebaseapp.com",
+  databaseURL: "https://kelas6b-bfc03-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "kelas6b-bfc03",
+  storageBucket: "kelas6b-bfc03.firebasestorage.app",
+  messagingSenderId: "632145539568",
+  appId: "1:632145539568:web:8a4b76f0dd5314cb97ed35"
 };
 
 // GANTI DENGAN EMAIL ADMIN
 const ADMIN_EMAILS = [
-  "emailanda@gmail.com"
+  "thisisart655@gmail.com"
 ];
 
 // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
