@@ -49,20 +49,27 @@
       <div class="card-grid" id="materi-list"></div>
     </section>
 
-    <!-- LATIHAN -->
-    <section id="page-latihan" class="page">
-      <div class="page-header glass">
-        <h2>🎮 Latihan & Kuis</h2>
-        <button class="btn-admin admin-only" onclick="toggleAdminForm('latihan')">+ Tambah Latihan (Admin)</button>
-      </div>
-      <div id="form-latihan-container" class="admin-form glass hidden">
-        <input type="text" id="latihan-title" placeholder="Judul Kuis">
-        <textarea id="latihan-question" placeholder="Pertanyaan"></textarea>
-        <input type="text" id="latihan-link" placeholder="Link Kuis">
-        <button class="btn-primary" onclick="saveLatihan()">Simpan</button>
-      </div>
-      <div class="card-grid" id="latihan-list"></div>
-    </section>
+    <!-- FORM LATIHAN (ADMIN) -->
+<div id="form-latihan-container" class="admin-form glass hidden">
+  <h3>Tambah Soal Pilihan Ganda</h3>
+  <input type="text" id="latihan-title" placeholder="Judul / Kategori (misal: Matematika Dasar)">
+  <textarea id="latihan-question" placeholder="Pertanyaan Soal"></textarea>
+  
+  <input type="text" id="opt-a" placeholder="Pilihan A">
+  <input type="text" id="opt-b" placeholder="Pilihan B">
+  <input type="text" id="opt-c" placeholder="Pilihan C">
+  <input type="text" id="opt-d" placeholder="Pilihan D">
+  
+  <label style="font-weight:bold; margin-top:5px; display:block;">Kunci Jawaban Benar:</label>
+  <select id="correct-answer" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 8px;">
+    <option value="A">Pilihan A</option>
+    <option value="B">Pilihan B</option>
+    <option value="C">Pilihan C</option>
+    <option value="D">Pilihan D</option>
+  </select>
+
+  <button class="btn-primary" onclick="saveLatihan()">Simpan Soal</button>
+</div>  
   </main>
 
   <!-- PANGGUL APP.JS DENGAN TYPE MODULE -->
