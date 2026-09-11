@@ -33,7 +33,7 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 // DAFTAR EMAIL ADMIN (Ganti dengan email Google Anda yang bertindak sebagai Admin)
-const ADMIN_EMAILS = ["emailanda@gmail.com"];
+const ADMIN_EMAILS = ["thisisart655@gmail.com"];
 
 // --- 2. LOGIC AUTHENTICATION (GOOGLE SIGN IN) ---
 window.loginGoogle = async () => {
