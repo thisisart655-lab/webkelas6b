@@ -16,12 +16,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // ==========================================
-// 1. KONFIGURASI FIREBASE & ADMIN
+// 1. KONFIGURASI FIREBASE & SETTING
 // ==========================================
 
-// Ganti nilai di bawah ini dengan Firebase Config asli Anda!
+// Ganti nilai di bawah ini dengan Project Settings dari Firebase Console Anda!
 const firebaseConfig = {
- apiKey: "AIzaSyBJETCKPOLwFnVp8Q8Zev6tL_MJAsxAAJc",
+apiKey: "AIzaSyBJETCKPOLwFnVp8Q8Zev6tL_MJAsxAAJc",
   authDomain: "kelas6b-bfc03.firebaseapp.com",
   databaseURL: "https://kelas6b-bfc03-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "kelas6b-bfc03",
@@ -30,16 +30,24 @@ const firebaseConfig = {
   appId: "1:632145539568:web:8a4b76f0dd5314cb97ed35"
 };
 
-// DAFTAR EMAIL ADMIN (Ganti dengan Gmail aktif Anda)
+// DAFTAR EMAIL ADMIN (Ganti dengan email Gmail Anda)
 const ADMIN_EMAILS = [
-  "thisisart655@gmail.com"
+  "THISISART655@gmail.com" // <-- MASUKKAN EMAIL ADMIN DI SINI (HURUF KECIL)
 ];
 
-// Inisialisasi Firebase
+// MASUKKAN URL GOOGLE APPS SCRIPT DARI SPREADSHEET ANDA DI SINI
+const GOOGLE_SHEET_URL = "URL_WEB_APP_GOOGLE_SCRIPT_ANDA";
+
+// Inisialisasi Firebase App
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+
+// Variabel Penampung Kuis
+let currentQuestions = [];
+let userAnswers = {};
+let activeQuizTitle = "";
 
 // ==========================================
 // 2. LOGIC AUTHENTICATION (GOOGLE SIGN IN)
@@ -60,7 +68,7 @@ window.logout = () => {
   });
 };
 
-// Monitoring Status Login
+// Monitoring Status Login User (Deteksi Admin)
 onAuthStateChanged(auth, (user) => {
   const profileContainer = document.getElementById("userProfile");
   const heroLoginBtn = document.getElementById("heroLoginBtn");
@@ -128,7 +136,7 @@ window.toggleAdminForm = (type) => {
 };
 
 // ==========================================
-// 4. MANAGEMENT MATERI
+// 4. MANAGEMENT MATERI (FIRESTORE CRUD)
 // ==========================================
 
 window.saveMateri = async () => {
@@ -136,7 +144,7 @@ window.saveMateri = async () => {
   const img = document.getElementById('materi-img').value;
   const desc = document.getElementById('materi-desc').value;
 
-  if (!title || !desc) return alert("Harap isi Judul dan Deskripsi!");
+  if (!title || !desc) return alert("Harap isi Judul dan Deskripsi Materi!");
 
   try {
     await addDoc(collection(db, "materi"), {
@@ -192,11 +200,12 @@ async function loadMateri() {
     });
   } catch (err) {
     console.error("Error load materi:", err);
+    listContainer.innerHTML = "<p style='text-align:center; color:red;'>Gagal memuat materi.</p>";
   }
 }
 
 // ==========================================
-// 5. MANAGEMENT LATIHAN (PILTIHAN GANDA)
+// 5. MANAGEMENT LATIHAN (PILIHAN GANDA & SKOR)
 // ==========================================
 
 // Simpan Soal Pilihan Ganda Baru (Admin)
@@ -223,15 +232,15 @@ window.saveLatihan = async () => {
     });
 
     alert("Soal berhasil disimpan!");
-    
-    // Reset Form
+
+    // Clear Input Form
     document.getElementById('latihan-title').value = '';
     document.getElementById('latihan-question').value = '';
     document.getElementById('opt-a').value = '';
     document.getElementById('opt-b').value = '';
     document.getElementById('opt-c').value = '';
     document.getElementById('opt-d').value = '';
-    
+
     toggleAdminForm('latihan');
     loadLatihan();
   } catch (e) {
@@ -239,7 +248,7 @@ window.saveLatihan = async () => {
   }
 };
 
-// Load Soal dari Database ke Tampilan Siswa
+// Load Soal Pilihan Ganda dari Database
 async function loadLatihan() {
   const listContainer = document.getElementById("latihan-list");
   if (!listContainer) return;
@@ -247,71 +256,126 @@ async function loadLatihan() {
   try {
     const querySnapshot = await getDocs(collection(db, "latihan"));
     listContainer.innerHTML = "";
+    currentQuestions = [];
+    userAnswers = {};
 
     if (querySnapshot.empty) {
-      listContainer.innerHTML = "<p style='text-align:center;'>Belum ada latihan/kuis.</p>";
+      listContainer.innerHTML = "<p style='text-align:center;'>Belum ada latihan/kuis. Tambahkan soal baru sebagai Admin!</p>";
       return;
     }
 
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
       const id = docSnap.id;
-      const opts = data.options || {};
+      currentQuestions.push({ id, ...data });
+      activeQuizTitle = data.title;
 
+      const opts = data.options || {};
       listContainer.innerHTML += `
-        <div class="card glass" style="text-align: left;">
+        <div class="card glass" style="text-align: left; margin-bottom: 15px; padding: 20px;">
           <div class="card-body">
-            <span style="font-size: 0.8rem; background: #ee5253; color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold;">
+            <span style="font-size: 0.8rem; background: #ee5253; color: white; padding: 3px 10px; border-radius: 12px; font-weight: bold;">
               ${data.title}
             </span>
             <h3 style="margin-top: 10px;">${data.question}</h3>
             
-            <!-- Pilihan Jawaban -->
-            <div class="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin: 15px 0;">
-              <button class="btn-option" onclick="checkAnswer('${id}', 'A', '${data.correctAnswer}')">A. ${opts.A || ''}</button>
-              <button class="btn-option" onclick="checkAnswer('${id}', 'B', '${data.correctAnswer}')">B. ${opts.B || ''}</button>
-              <button class="btn-option" onclick="checkAnswer('${id}', 'C', '${data.correctAnswer}')">C. ${opts.C || ''}</button>
-              <button class="btn-option" onclick="checkAnswer('${id}', 'D', '${data.correctAnswer}')">D. ${opts.D || ''}</button>
+            <div class="quiz-options" style="display: flex; flex-direction: column; gap: 10px; margin: 15px 0;">
+              ${['A', 'B', 'C', 'D'].map(opt => `
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 8px;">
+                  <input type="radio" name="q_${id}" value="${opt}" onchange="selectAnswer('${id}', '${opt}')">
+                  <b>${opt}.</b> ${opts[opt] || ''}
+                </label>
+              `).join('')}
             </div>
 
-            <!-- Feedback Jawaban -->
-            <div id="feedback-${id}" style="font-weight: bold; margin-top: 5px;"></div>
-
-            <div class="card-footer" style="margin-top: 10px;">
-              <div></div>
-              <div class="admin-actions admin-only">
-                <button class="btn-icon delete" onclick="deleteData('latihan', '${id}')" title="Hapus Latihan">
-                  <i class="fa-solid fa-trash"></i> Hapus
-                </button>
-              </div>
+            <div class="admin-actions admin-only" style="margin-top: 10px;">
+              <button class="btn-icon delete" onclick="deleteData('latihan', '${id}')" title="Hapus Soal">
+                <i class="fa-solid fa-trash"></i> Hapus Soal
+              </button>
             </div>
           </div>
         </div>
       `;
     });
+
+    // Tambahkan Tombol Submit Jawaban di bagian bawah daftar soal
+    listContainer.innerHTML += `
+      <div style="text-align:center; margin: 25px 0;">
+        <button class="btn-primary" onclick="submitQuiz()" style="padding: 12px 30px; font-size: 1.1rem;">
+          🚀 Kirim Jawaban & Lihat Skor
+        </button>
+        <div id="quiz-result" style="margin-top:15px; font-weight:bold;"></div>
+      </div>
+    `;
+
   } catch (err) {
     console.error("Error load latihan:", err);
+    listContainer.innerHTML = "<p style='text-align:center; color:red;'>Gagal memuat latihan.</p>";
   }
 }
 
-// Fungsi Cek Jawaban Siswa
-window.checkAnswer = (docId, selected, correct) => {
-  const feedbackEl = document.getElementById(`feedback-${docId}`);
-  if (!feedbackEl) return;
+// Rekam Pilihan Jawaban Siswa
+window.selectAnswer = (qId, option) => {
+  userAnswers[qId] = option;
+};
 
-  if (selected === correct) {
-    feedbackEl.innerHTML = `<span style="color: #10ac84;">🎉 Benar sekali! Jawaban Anda tepat.</span>`;
-  } else {
-    feedbackEl.innerHTML = `<span style="color: #ee5253;">❌ Masih kurang tepat. Coba lagi!</span>`;
+// Hitung Skor & Simpan ke Google Sheets
+window.submitQuiz = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    return alert("Silakan Login dengan akun Google terlebih dahulu untuk mengirim jawaban kuis!");
+  }
+
+  if (Object.keys(userAnswers).length < currentQuestions.length) {
+    if (!confirm("Masih ada soal yang belum Anda jawab. Yakin ingin mengumpulkan sekarang?")) return;
+  }
+
+  let correctCount = 0;
+  currentQuestions.forEach(q => {
+    if (userAnswers[q.id] === q.correctAnswer) {
+      correctCount++;
+    }
+  });
+
+  const finalScore = Math.round((correctCount / currentQuestions.length) * 100);
+  const resultDiv = document.getElementById("quiz-result");
+  resultDiv.innerHTML = `Mengirim nilai... ⏳`;
+
+  const payload = {
+    nama: user.displayName || "Siswa",
+    email: user.email,
+    judul: activeQuizTitle || "Latihan Pilihan Ganda",
+    skor: finalScore
+  };
+
+  try {
+    if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== "URL_WEB_APP_GOOGLE_SCRIPT_ANDA") {
+      await fetch(GOOGLE_SHEET_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    resultDiv.innerHTML = `
+      <div style="background:#d4edda; color:#155724; padding:15px; border-radius:10px; font-size:1.2rem; border:1px solid #c3e6cb;">
+        🎉 Selamat <b>${payload.nama}</b>! Skor Anda: <b>${finalScore} / 100</b> (${correctCount} dari ${currentQuestions.length} Soal Benar)<br>
+        <small>(Nilai telah berhasil disimpan)</small>
+      </div>
+    `;
+  } catch (err) {
+    console.error("Gagal kirim skor:", err);
+    resultDiv.innerHTML = `<span style="color:red;">Gagal menyimpan nilai ke spreadsheet.</span>`;
   }
 };
 
 // ==========================================
-// 6. HAPUS DATA (ADMIN)
+// 6. HAPUS DATA (ADMIN ONLY)
 // ==========================================
 
 window.deleteData = async (colName, id) => {
-  if (confirm("Yakin ingin menghapus data ini?")) {
+  if (confirm("Yakin ingin menghapus data ini secara permanen?")) {
     try {
       await deleteDoc(doc(db, colName, id));
       alert("Data berhasil dihapus!");
@@ -323,6 +387,6 @@ window.deleteData = async (colName, id) => {
   }
 };
 
-// Jalankan saat pertama dimuat
+// Inisialisasi awal saat halaman selesai dimuat
 loadMateri();
 loadLatihan();
