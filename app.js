@@ -196,28 +196,42 @@ async function loadMateri() {
 }
 
 // ==========================================
-// 5. MANAGEMENT LATIHAN
+// 5. MANAGEMENT LATIHAN (PILTIHAN GANDA)
 // ==========================================
 
+// Simpan Soal Pilihan Ganda Baru (Admin)
 window.saveLatihan = async () => {
   const title = document.getElementById('latihan-title').value;
   const question = document.getElementById('latihan-question').value;
-  const link = document.getElementById('latihan-link').value;
+  const optA = document.getElementById('opt-a').value;
+  const optB = document.getElementById('opt-b').value;
+  const optC = document.getElementById('opt-c').value;
+  const optD = document.getElementById('opt-d').value;
+  const correctAnswer = document.getElementById('correct-answer').value;
 
-  if (!title || !question) return alert("Harap isi Judul dan Pertanyaan!");
+  if (!title || !question || !optA || !optB || !optC || !optD) {
+    return alert("Harap isi semua kolom pertanyaan dan pilihan jawaban!");
+  }
 
   try {
     await addDoc(collection(db, "latihan"), {
       title,
       question,
-      link: link || "#",
+      options: { A: optA, B: optB, C: optC, D: optD },
+      correctAnswer,
       createdAt: new Date()
     });
 
-    alert("Latihan berhasil disimpan!");
+    alert("Soal berhasil disimpan!");
+    
+    // Reset Form
     document.getElementById('latihan-title').value = '';
     document.getElementById('latihan-question').value = '';
-    document.getElementById('latihan-link').value = '';
+    document.getElementById('opt-a').value = '';
+    document.getElementById('opt-b').value = '';
+    document.getElementById('opt-c').value = '';
+    document.getElementById('opt-d').value = '';
+    
     toggleAdminForm('latihan');
     loadLatihan();
   } catch (e) {
@@ -225,6 +239,7 @@ window.saveLatihan = async () => {
   }
 };
 
+// Load Soal dari Database ke Tampilan Siswa
 async function loadLatihan() {
   const listContainer = document.getElementById("latihan-list");
   if (!listContainer) return;
@@ -240,17 +255,32 @@ async function loadLatihan() {
 
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
+      const id = docSnap.id;
+      const opts = data.options || {};
+
       listContainer.innerHTML += `
-        <div class="card glass">
+        <div class="card glass" style="text-align: left;">
           <div class="card-body">
-            <h3>${data.title}</h3>
-            <p>${data.question}</p>
-            <div class="card-footer">
-              <a href="${data.link || '#'}" target="_blank">
-                <button class="btn-small btn-success">Mulai Main 🎲</button>
-              </a>
+            <span style="font-size: 0.8rem; background: #ee5253; color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold;">
+              ${data.title}
+            </span>
+            <h3 style="margin-top: 10px;">${data.question}</h3>
+            
+            <!-- Pilihan Jawaban -->
+            <div class="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin: 15px 0;">
+              <button class="btn-option" onclick="checkAnswer('${id}', 'A', '${data.correctAnswer}')">A. ${opts.A || ''}</button>
+              <button class="btn-option" onclick="checkAnswer('${id}', 'B', '${data.correctAnswer}')">B. ${opts.B || ''}</button>
+              <button class="btn-option" onclick="checkAnswer('${id}', 'C', '${data.correctAnswer}')">C. ${opts.C || ''}</button>
+              <button class="btn-option" onclick="checkAnswer('${id}', 'D', '${data.correctAnswer}')">D. ${opts.D || ''}</button>
+            </div>
+
+            <!-- Feedback Jawaban -->
+            <div id="feedback-${id}" style="font-weight: bold; margin-top: 5px;"></div>
+
+            <div class="card-footer" style="margin-top: 10px;">
+              <div></div>
               <div class="admin-actions admin-only">
-                <button class="btn-icon delete" onclick="deleteData('latihan', '${docSnap.id}')" title="Hapus Latihan">
+                <button class="btn-icon delete" onclick="deleteData('latihan', '${id}')" title="Hapus Latihan">
                   <i class="fa-solid fa-trash"></i> Hapus
                 </button>
               </div>
@@ -263,6 +293,18 @@ async function loadLatihan() {
     console.error("Error load latihan:", err);
   }
 }
+
+// Fungsi Cek Jawaban Siswa
+window.checkAnswer = (docId, selected, correct) => {
+  const feedbackEl = document.getElementById(`feedback-${docId}`);
+  if (!feedbackEl) return;
+
+  if (selected === correct) {
+    feedbackEl.innerHTML = `<span style="color: #10ac84;">🎉 Benar sekali! Jawaban Anda tepat.</span>`;
+  } else {
+    feedbackEl.innerHTML = `<span style="color: #ee5253;">❌ Masih kurang tepat. Coba lagi!</span>`;
+  }
+};
 
 // ==========================================
 // 6. HAPUS DATA (ADMIN)
