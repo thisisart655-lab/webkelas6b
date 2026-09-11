@@ -32,8 +32,52 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// DAFTAR EMAIL ADMIN (Ganti dengan email Google Anda yang bertindak sebagai Admin)
-const ADMIN_EMAILS = ["thisisart655@gmail.com"];
+/ 1. DAFTAR EMAIL ADMIN
+const ADMIN_EMAILS = [
+  "thisisart655@gmail.com" // <-- Masukkan email Gmail Anda
+]; 
+
+// 2. FUNGSI AUTH DENGAN DEBUGGER
+onAuthStateChanged(auth, (user) => {
+  const profileContainer = document.getElementById("userProfile");
+  const heroLoginBtn = document.getElementById("heroLoginBtn");
+
+  if (user) {
+    const userEmail = user.email ? user.email.toLowerCase() : "";
+    const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase().trim()).includes(userEmail);
+
+    // Cek di Console F12
+    console.log("=== CHECK ADMIN STATUS ===");
+    console.log("Email Login User :", userEmail);
+    console.log("Daftar Email Admin:", ADMIN_EMAILS);
+    console.log("Apakah Status Admin?:", isAdmin);
+
+    if (isAdmin) {
+      document.body.classList.add("is-admin");
+    } else {
+      document.body.classList.remove("is-admin");
+    }
+
+    profileContainer.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="${user.photoURL}" style="width:35px; height:35px; border-radius:50%;">
+        <span style="font-weight:bold;">${user.displayName ? user.displayName.split(" ")[0] : 'User'} ${isAdmin ? '<b style="color: red;">(Admin)</b>' : ''}</span>
+        <button onclick="logout()" class="btn-danger" style="padding: 5px 12px; font-size: 0.8rem;">Keluar</button>
+      </div>
+    `;
+    
+    if (heroLoginBtn) heroLoginBtn.style.display = "none";
+
+  } else {
+    document.body.classList.remove("is-admin");
+    profileContainer.innerHTML = `
+      <button class="btn-google" onclick="loginGoogle()">
+        <i class="fa-brands fa-google"></i> Masuk Google
+      </button>
+    `;
+    if (heroLoginBtn) heroLoginBtn.style.display = "inline-block";
+  }
+});
 
 // --- 2. LOGIC AUTHENTICATION (GOOGLE SIGN IN) ---
 window.loginGoogle = async () => {
