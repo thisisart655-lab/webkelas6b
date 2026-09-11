@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelas Ceria - Media Pembelajaran</title>
+  
+  <!-- Font Google khusus anak-anak (Fredoka & Quicksand) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome untuk Icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Decorative Shapes -->
+  <div class="bg-shape circle-1"></div>
+  <div class="bg-shape circle-2"></div>
+  <div class="bg-shape circle-3"></div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar glass">
+    <div class="logo">
+      <i class="fa-solid fa-shapes"></i> Kelas<span>Ceria</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#home" class="nav-item active" onclick="switchPage('home')"><i class="fa-solid fa-house"></i> Home</a></li>
+      <li><a href="#materi" class="nav-item" onclick="switchPage('materi')"><i class="fa-solid fa-book-open"></i> Materi</a></li>
+      <li><a href="#latihan" class="nav-item" onclick="switchPage('latihan')"><i class="fa-solid fa-gamepad"></i> Latihan</a></li>
+    </ul>
+    <div class="user-profile" id="userProfile">
+      <!-- Diisi secara dinamis via JS -->
+      <button class="btn-google" id="btnLogin" onclick="loginGoogle()">
+        <i class="fa-brands fa-google"></i> Masuk Google
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+
+    <!-- PAGE 1: LANDING & HOME -->
+    <section id="page-home" class="page active">
+      <div class="hero glass">
+        <div class="hero-text">
+          <span class="badge">🎈 Belajar Jadi Lebih Seru!</span>
+          <h1>Selamat Datang di <br><span class="highlight">Kelas Ceria</span></h1>
+          <p>Tempat belajar interaktif penuh warna, materi seru, dan latihan soal yang menyenangkan untuk anak-anak pintar!</p>
+          
+          <div class="hero-buttons">
+            <button class="btn-primary" onclick="switchPage('materi')">Mulai Belajar 🚀</button>
+            <button class="btn-secondary" onclick="loginGoogle()" id="heroLoginBtn">Login Siswa 🔐</button>
+          </div>
+        </div>
+        <div class="hero-img">
+          <!-- Gambar ilustrasi anak-anak -->
+          <img src="https://img.freepik.com/free-vector/happy-children-jumping-together_52683-40030.jpg" alt="Anak-anak belajar">
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 2: MATERI -->
+    <section id="page-materi" class="page">
+      <div class="page-header glass">
+        <h2>📚 Materi Pembelajaran</h2>
+        <p>Pilih pelajaran favoritmu dan mulai petualangan belajar!</p>
+        <button class="btn-admin admin-only" onclick="toggleAdminForm('materi')">+ Tambah Materi (Admin)</button>
+      </div>
+
+      <!-- Form Tambah/Edit Materi (Khusus Admin) -->
+      <div id="form-materi-container" class="admin-form glass hidden">
+        <h3 id="form-materi-title">Tambah Materi Baru</h3>
+        <input type="text" id="materi-title" placeholder="Judul Materi (misal: Perkalian Dasar)">
+        <input type="text" id="materi-img" placeholder="URL Gambar Ilustrasi">
+        <textarea id="materi-desc" placeholder="Isi Rangkuman Materi..."></textarea>
+        <div class="form-actions">
+          <button class="btn-primary" onclick="saveMateri()">Simpan Materi</button>
+          <button class="btn-danger" onclick="toggleAdminForm('materi')">Batal</button>
+        </div>
+      </div>
+
+      <!-- Grid Daftar Materi -->
+      <div class="card-grid" id="materi-list">
+        <!-- Contoh Card Materi (Akan digenerate otomatis via Firestore) -->
+        <div class="card glass">
+          <img src="https://img.freepik.com/free-vector/cute-animals-holding-numbers-banner_1308-43306.jpg" alt="Matematika">
+          <div class="card-body">
+            <h3>Matematika Perkalian</h3>
+            <p>Belajar perkalian dasar dengan cara menempel dan melempar dadu warna-warni!</p>
+            <div class="card-footer">
+              <button class="btn-small">Baca Materi</button>
+              <div class="admin-actions admin-only">
+                <button class="btn-icon edit"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-icon delete"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: LATIHAN -->
+    <section id="page-latihan" class="page">
+      <div class="page-header glass">
+        <h2>🎮 Latihan & Kuis Interaktif</h2>
+        <p>Uji kemampuanmu dan kumpulkan poin terbanyak!</p>
+        <button class="btn-admin admin-only" onclick="toggleAdminForm('latihan')">+ Tambah Latihan (Admin)</button>
+      </div>
+
+      <!-- Form Tambah/Edit Latihan (Khusus Admin) -->
+      <div id="form-latihan-container" class="admin-form glass hidden">
+        <h3 id="form-latihan-title">Tambah Soal Latihan</h3>
+        <input type="text" id="latihan-title" placeholder="Judul Kuis">
+        <textarea id="latihan-question" placeholder="Pertanyaan Soal..."></textarea>
+        <input type="text" id="latihan-link" placeholder="Link Kuis (misal: Kahoot / Wordwall / Google Form)">
+        <div class="form-actions">
+          <button class="btn-primary" onclick="saveLatihan()">Simpan Soal</button>
+          <button class="btn-danger" onclick="toggleAdminForm('latihan')">Batal</button>
+        </div>
+      </div>
+
+      <!-- Grid Daftar Latihan -->
+      <div class="card-grid" id="latihan-list">
+        <div class="card glass">
+          <img src="https://img.freepik.com/free-vector/flat-creativity-concept-illustration_23-2148924040.jpg" alt="Kuis">
+          <div class="card-body">
+            <h3>Kuis Tebak Huruf Konsonan</h3>
+            <p>Asah kemampuan membaca dengan menjawab soal-soal berhadiah bintang!</p>
+            <div class="card-footer">
+              <button class="btn-small btn-success">Mulai Main 🎲</button>
+              <div class="admin-actions admin-only">
+                <button class="btn-icon edit"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-icon delete"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FIREBASE SDK (Modular Firebase v9/v10) -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
