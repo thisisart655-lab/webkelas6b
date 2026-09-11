@@ -57,7 +57,7 @@ let editMateriId = null;
 // ==========================================
 
 async function uploadFileToImgBB(file) {
-  if (!IMGBB_API_KEY || IMGBB_API_KEY === "PASTE_API_KEY_IMGBB_DISINI") {
+  if (!IMGBB_API_KEY || IMGBB_API_KEY === "a4effc02ebeca624eb55b122f22c8a25") {
     throw new Error("API Key ImgBB belum dimasukkan di app.js!");
   }
 
