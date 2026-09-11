@@ -21,7 +21,7 @@ import {
 // ==========================================
 
 // 🔑 PASTE API KEY IMGBB ANDA DI SINI
-const IMGBB_API_KEY = "436c92e418bdcc390de6c9827393e480";
+const IMGBB_API_KEY = "a4effc02ebeca624eb55b122f22c8a25";
 
 // 🔑 KONFIGURASI FIREBASE ANDA
 const firebaseConfig = {
