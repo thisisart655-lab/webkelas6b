@@ -15,9 +15,13 @@ import {
   doc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// 1. ISI KONFIGURASI FIREBASE ANDA DI SINI
+// ==========================================
+// 1. KONFIGURASI FIREBASE & ADMIN
+// ==========================================
+
+// Ganti nilai di bawah ini dengan Project Settings dari Firebase Console Anda!
 const firebaseConfig = {
- apiKey: "AIzaSyBJETCKPOLwFnVp8Q8Zev6tL_MJAsxAAJc",
+   apiKey: "AIzaSyBJETCKPOLwFnVp8Q8Zev6tL_MJAsxAAJc",
   authDomain: "kelas6b-bfc03.firebaseapp.com",
   databaseURL: "https://kelas6b-bfc03-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "kelas6b-bfc03",
@@ -26,60 +30,21 @@ const firebaseConfig = {
   appId: "1:632145539568:web:8a4b76f0dd5314cb97ed35"
 };
 
-// Inisialisasi Firebase
+// DAFTAR EMAIL ADMIN (Ganti dengan email Gmail Anda yang digunakan saat login)
+const ADMIN_EMAILS = [
+  "thisisart655@gmail.com" // <-- MASUKKAN EMAIL ANDA DI SINI (HURUF KECIL)
+];
+
+// Inisialisasi Firebase App
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-/ 2. DAFTAR EMAIL ADMIN
-const ADMIN_EMAILS = [
-  "thisisart655@gmail.com" // <-- Masukkan email Gmail Anda
-]; 
+// ==========================================
+// 2. LOGIC AUTHENTICATION (GOOGLE SIGN IN)
+// ==========================================
 
-// 3. FUNGSI AUTH DENGAN DEBUGGER
-onAuthStateChanged(auth, (user) => {
-  const profileContainer = document.getElementById("userProfile");
-  const heroLoginBtn = document.getElementById("heroLoginBtn");
-
-  if (user) {
-    const userEmail = user.email ? user.email.toLowerCase() : "";
-    const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase().trim()).includes(userEmail);
-
-    // Cek di Console F12
-    console.log("=== CHECK ADMIN STATUS ===");
-    console.log("Email Login User :", userEmail);
-    console.log("Daftar Email Admin:", ADMIN_EMAILS);
-    console.log("Apakah Status Admin?:", isAdmin);
-
-    if (isAdmin) {
-      document.body.classList.add("is-admin");
-    } else {
-      document.body.classList.remove("is-admin");
-    }
-
-    profileContainer.innerHTML = `
-      <div style="display:flex; align-items:center; gap:10px;">
-        <img src="${user.photoURL}" style="width:35px; height:35px; border-radius:50%;">
-        <span style="font-weight:bold;">${user.displayName ? user.displayName.split(" ")[0] : 'User'} ${isAdmin ? '<b style="color: red;">(Admin)</b>' : ''}</span>
-        <button onclick="logout()" class="btn-danger" style="padding: 5px 12px; font-size: 0.8rem;">Keluar</button>
-      </div>
-    `;
-    
-    if (heroLoginBtn) heroLoginBtn.style.display = "none";
-
-  } else {
-    document.body.classList.remove("is-admin");
-    profileContainer.innerHTML = `
-      <button class="btn-google" onclick="loginGoogle()">
-        <i class="fa-brands fa-google"></i> Masuk Google
-      </button>
-    `;
-    if (heroLoginBtn) heroLoginBtn.style.display = "inline-block";
-  }
-});
-
-// --- 4. LOGIC AUTHENTICATION (GOOGLE SIGN IN) ---
 window.loginGoogle = async () => {
   try {
     await signInWithPopup(auth, provider);
@@ -89,73 +54,96 @@ window.loginGoogle = async () => {
 };
 
 window.logout = () => {
-  signOut(auth).then(() => alert("Berhasil Keluar!"));
+  signOut(auth).then(() => {
+    alert("Berhasil Keluar!");
+    window.location.reload();
+  });
 };
 
-// Deteksi status Login User
+// Monitoring Status Login User (Deteksi Admin)
 onAuthStateChanged(auth, (user) => {
   const profileContainer = document.getElementById("userProfile");
   const heroLoginBtn = document.getElementById("heroLoginBtn");
 
   if (user) {
-    const isAdmin = ADMIN_EMAILS.includes(user.email);
-    
-    // Set status admin di DOM body
+    const userEmail = user.email ? user.email.toLowerCase().trim() : "";
+    const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase().trim()).includes(userEmail);
+
+    // Debugger Log di Console F12 Browser
+    console.log("=== STATUS LOGIN USER ===");
+    console.log("Email Terdeteksi:", userEmail);
+    console.log("Status Admin     :", isAdmin ? "YA (Admin)" : "TIDAK (Siswa)");
+
+    // Jika Admin, tambahkan class 'is-admin' di body HTML
     if (isAdmin) {
       document.body.classList.add("is-admin");
     } else {
       document.body.classList.remove("is-admin");
     }
 
-    // Tampilan User Navbar
-    profileContainer.innerHTML = `
-      <div style="display:flex; align-items:center; gap:10px;">
-        <img src="${user.photoURL}" style="width:35px; height:35px; border-radius:50%;">
-        <span style="font-weight:bold;">${user.displayName.split(" ")[0]} ${isAdmin ? '(Admin)' : ''}</span>
-        <button onclick="logout()" class="btn-danger" style="padding: 5px 12px; font-size: 0.8rem;">Keluar</button>
-      </div>
-    `;
-    if(heroLoginBtn) heroLoginBtn.style.display = "none";
+    // Tampilan Profil Navbar
+    if (profileContainer) {
+      profileContainer.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="${user.photoURL}" style="width:35px; height:35px; border-radius:50%;">
+          <span style="font-weight:bold;">
+            ${user.displayName ? user.displayName.split(" ")[0] : 'User'} 
+            ${isAdmin ? '<b style="color: #ff4757;">(Admin)</b>' : ''}
+          </span>
+          <button onclick="logout()" class="btn-danger" style="padding: 5px 12px; font-size: 0.8rem;">Keluar</button>
+        </div>
+      `;
+    }
+    
+    if (heroLoginBtn) heroLoginBtn.style.display = "none";
+
   } else {
     document.body.classList.remove("is-admin");
-    profileContainer.innerHTML = `
-      <button class="btn-google" onclick="loginGoogle()">
-        <i class="fa-brands fa-google"></i> Masuk Google
-      </button>
-    `;
-    if(heroLoginBtn) heroLoginBtn.style.display = "inline-block";
+    
+    if (profileContainer) {
+      profileContainer.innerHTML = `
+        <button class="btn-google" onclick="loginGoogle()">
+          <i class="fa-brands fa-google"></i> Masuk Google
+        </button>
+      `;
+    }
+    if (heroLoginBtn) heroLoginBtn.style.display = "inline-block";
   }
 });
 
-// --- 5. NAVIGASI HALAMAN (SPA) ---
+// ==========================================
+// 3. NAVIGASI HALAMAN (SINGLE PAGE APP)
+// ==========================================
+
 window.switchPage = (pageName) => {
-  // Sembunyikan semua page
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  // Nonaktifkan semua link nav
   document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
 
-  // Tampilkan page terpilih
-  document.getElementById(`page-${pageName}`).classList.add('active');
-  
-  // Highlighting navbar link
+  const targetPage = document.getElementById(`page-${pageName}`);
+  if (targetPage) targetPage.classList.add('active');
+
   const activeNav = Array.from(document.querySelectorAll('.nav-item'))
-                         .find(a => a.getAttribute('onclick').includes(pageName));
-  if(activeNav) activeNav.classList.add('active');
+                         .find(a => a.getAttribute('onclick') && a.getAttribute('onclick').includes(pageName));
+  if (activeNav) activeNav.classList.add('active');
 };
 
-// --- 6. ADMIN & FIRESTORE CRUD LOGIC ---
+// Toggle Buka/Tutup Form Admin
 window.toggleAdminForm = (type) => {
   const container = document.getElementById(`form-${type}-container`);
-  container.classList.toggle('hidden');
+  if (container) container.classList.toggle('hidden');
 };
 
-// SIMPAN MATERI KE FIRESTORE
+// ==========================================
+// 4. MANAGEMENT MATERI (FIRESTORE CRUD)
+// ==========================================
+
+// Simpan Materi Baru
 window.saveMateri = async () => {
   const title = document.getElementById('materi-title').value;
   const img = document.getElementById('materi-img').value;
   const desc = document.getElementById('materi-desc').value;
 
-  if(!title || !desc) return alert("Harap isi judul dan deskripsi!");
+  if (!title || !desc) return alert("Harap isi Judul dan Deskripsi Materi!");
 
   try {
     await addDoc(collection(db, "materi"), {
@@ -164,24 +152,33 @@ window.saveMateri = async () => {
       desc,
       createdAt: new Date()
     });
+
     alert("Materi berhasil disimpan!");
     document.getElementById('materi-title').value = '';
+    document.getElementById('materi-img').value = '';
     document.getElementById('materi-desc').value = '';
     toggleAdminForm('materi');
     loadMateri();
   } catch (e) {
-    alert("Error: " + e.message);
+    alert("Gagal menyimpan materi: " + e.message);
   }
 };
 
-// 1. DUA FUNGSI LOAD DATA YANG SUDAH DIPERBAIKI DENGAN KELAS ADMIN
+// Load Materi dari Database
 async function loadMateri() {
   const listContainer = document.getElementById("materi-list");
   if (!listContainer) return;
-  listContainer.innerHTML = "";
-  
+  listContainer.innerHTML = "<p style='text-align:center;'>Memuat materi...</p>";
+
   try {
     const querySnapshot = await getDocs(collection(db, "materi"));
+    listContainer.innerHTML = "";
+
+    if (querySnapshot.empty) {
+      listContainer.innerHTML = "<p style='text-align:center;'>Belum ada materi pembelajaran.</p>";
+      return;
+    }
+
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
       listContainer.innerHTML += `
@@ -203,17 +200,57 @@ async function loadMateri() {
       `;
     });
   } catch (err) {
-    console.error("Gagal memuat materi:", err);
+    console.error("Error load materi:", err);
+    listContainer.innerHTML = "<p style='text-align:center; color:red;'>Gagal memuat materi.</p>";
   }
 }
 
+// ==========================================
+// 5. MANAGEMENT LATIHAN (FIRESTORE CRUD)
+// ==========================================
+
+// Simpan Soal Latihan Baru
+window.saveLatihan = async () => {
+  const title = document.getElementById('latihan-title').value;
+  const question = document.getElementById('latihan-question').value;
+  const link = document.getElementById('latihan-link').value;
+
+  if (!title || !question) return alert("Harap isi Judul dan Pertanyaan Latihan!");
+
+  try {
+    await addDoc(collection(db, "latihan"), {
+      title,
+      question,
+      link: link || "#",
+      createdAt: new Date()
+    });
+
+    alert("Latihan berhasil disimpan!");
+    document.getElementById('latihan-title').value = '';
+    document.getElementById('latihan-question').value = '';
+    document.getElementById('latihan-link').value = '';
+    toggleAdminForm('latihan');
+    loadLatihan();
+  } catch (e) {
+    alert("Gagal menyimpan latihan: " + e.message);
+  }
+};
+
+// Load Latihan dari Database
 async function loadLatihan() {
   const listContainer = document.getElementById("latihan-list");
   if (!listContainer) return;
-  listContainer.innerHTML = "";
+  listContainer.innerHTML = "<p style='text-align:center;'>Memuat latihan...</p>";
 
   try {
     const querySnapshot = await getDocs(collection(db, "latihan"));
+    listContainer.innerHTML = "";
+
+    if (querySnapshot.empty) {
+      listContainer.innerHTML = "<p style='text-align:center;'>Belum ada latihan/kuis.</p>";
+      return;
+    }
+
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
       listContainer.innerHTML += `
@@ -222,7 +259,9 @@ async function loadLatihan() {
             <h3>${data.title}</h3>
             <p>${data.question}</p>
             <div class="card-footer">
-              <a href="${data.link || '#'}" target="_blank"><button class="btn-small btn-success">Mulai Main 🎲</button></a>
+              <a href="${data.link || '#'}" target="_blank">
+                <button class="btn-small btn-success">Mulai Main 🎲</button>
+              </a>
               <div class="admin-actions admin-only">
                 <button class="btn-icon delete" onclick="deleteData('latihan', '${docSnap.id}')" title="Hapus Latihan">
                   <i class="fa-solid fa-trash"></i> Hapus
@@ -234,18 +273,28 @@ async function loadLatihan() {
       `;
     });
   } catch (err) {
-    console.error("Gagal memuat latihan:", err);
+    console.error("Error load latihan:", err);
+    listContainer.innerHTML = "<p style='text-align:center; color:red;'>Gagal memuat latihan.</p>";
   }
 }
-// HAPUS DATA (ADMIN)
+
+// ==========================================
+// 6. HAPUS DATA (ADMIN ONLY)
+// ==========================================
+
 window.deleteData = async (colName, id) => {
-  if(confirm("Yakin ingin menghapus data ini?")) {
-    await deleteDoc(doc(db, colName, id));
-    if(colName === 'materi') loadMateri();
-    else loadLatihan();
+  if (confirm("Yakin ingin menghapus data ini secara permanen?")) {
+    try {
+      await deleteDoc(doc(db, colName, id));
+      alert("Data berhasil dihapus!");
+      if (colName === 'materi') loadMateri();
+      else loadLatihan();
+    } catch (e) {
+      alert("Gagal menghapus data: " + e.message);
+    }
   }
 };
 
-// Load data saat halaman pertama kali dibuka
+// Inisialisasi awal saat halaman selesai dimuat
 loadMateri();
 loadLatihan();
