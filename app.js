@@ -32,12 +32,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-/ 1. DAFTAR EMAIL ADMIN
+/ 2. DAFTAR EMAIL ADMIN
 const ADMIN_EMAILS = [
   "thisisart655@gmail.com" // <-- Masukkan email Gmail Anda
 ]; 
 
-// 2. FUNGSI AUTH DENGAN DEBUGGER
+// 3. FUNGSI AUTH DENGAN DEBUGGER
 onAuthStateChanged(auth, (user) => {
   const profileContainer = document.getElementById("userProfile");
   const heroLoginBtn = document.getElementById("heroLoginBtn");
@@ -79,7 +79,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// --- 2. LOGIC AUTHENTICATION (GOOGLE SIGN IN) ---
+// --- 4. LOGIC AUTHENTICATION (GOOGLE SIGN IN) ---
 window.loginGoogle = async () => {
   try {
     await signInWithPopup(auth, provider);
@@ -127,7 +127,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// --- 3. NAVIGASI HALAMAN (SPA) ---
+// --- 5. NAVIGASI HALAMAN (SPA) ---
 window.switchPage = (pageName) => {
   // Sembunyikan semua page
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -143,7 +143,7 @@ window.switchPage = (pageName) => {
   if(activeNav) activeNav.classList.add('active');
 };
 
-// --- 4. ADMIN & FIRESTORE CRUD LOGIC ---
+// --- 6. ADMIN & FIRESTORE CRUD LOGIC ---
 window.toggleAdminForm = (type) => {
   const container = document.getElementById(`form-${type}-container`);
   container.classList.toggle('hidden');
@@ -174,80 +174,69 @@ window.saveMateri = async () => {
   }
 };
 
-// LOAD MATERI DARI FIRESTORE
+// 1. DUA FUNGSI LOAD DATA YANG SUDAH DIPERBAIKI DENGAN KELAS ADMIN
 async function loadMateri() {
   const listContainer = document.getElementById("materi-list");
+  if (!listContainer) return;
   listContainer.innerHTML = "";
   
-  const querySnapshot = await getDocs(collection(db, "materi"));
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    listContainer.innerHTML += `
-      <div class="card glass">
-        <img src="${data.img}" alt="${data.title}">
-        <div class="card-body">
-          <h3>${data.title}</h3>
-          <p>${data.desc}</p>
-          <div class="card-footer">
-            <button class="btn-small btn-primary">Baca Materi</button>
-            <div class="admin-actions admin-only">
-              <button class="btn-icon delete" onclick="deleteData('materi', '${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
+  try {
+    const querySnapshot = await getDocs(collection(db, "materi"));
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      listContainer.innerHTML += `
+        <div class="card glass">
+          <img src="${data.img || 'https://img.freepik.com/free-vector/cute-animals-holding-numbers-banner_1308-43306.jpg'}" alt="${data.title}">
+          <div class="card-body">
+            <h3>${data.title}</h3>
+            <p>${data.desc}</p>
+            <div class="card-footer">
+              <button class="btn-small btn-primary">Baca Materi</button>
+              <div class="admin-actions admin-only">
+                <button class="btn-icon delete" onclick="deleteData('materi', '${docSnap.id}')" title="Hapus Materi">
+                  <i class="fa-solid fa-trash"></i> Hapus
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
-  });
+      `;
+    });
+  } catch (err) {
+    console.error("Gagal memuat materi:", err);
+  }
 }
 
-// SIMPAN LATIHAN KE FIRESTORE
-window.saveLatihan = async () => {
-  const title = document.getElementById('latihan-title').value;
-  const question = document.getElementById('latihan-question').value;
-  const link = document.getElementById('latihan-link').value;
-
-  if(!title || !question) return alert("Harap isi semua kolom!");
-
-  try {
-    await addDoc(collection(db, "latihan"), {
-      title,
-      question,
-      link: link || "#",
-      createdAt: new Date()
-    });
-    alert("Latihan berhasil disimpan!");
-    toggleAdminForm('latihan');
-    loadLatihan();
-  } catch (e) {
-    alert("Error: " + e.message);
-  }
-};
-
-// LOAD LATIHAN DARI FIRESTORE
 async function loadLatihan() {
   const listContainer = document.getElementById("latihan-list");
+  if (!listContainer) return;
   listContainer.innerHTML = "";
 
-  const querySnapshot = await getDocs(collection(db, "latihan"));
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    listContainer.innerHTML += `
-      <div class="card glass">
-        <div class="card-body">
-          <h3>${data.title}</h3>
-          <p>${data.question}</p>
-          <div class="card-footer">
-            <a href="${data.link}" target="_blank"><button class="btn-small btn-success">Mulai Main 🎲</button></a>
-            <div class="admin-actions admin-only">
-              <button class="btn-icon delete" onclick="deleteData('latihan', '${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
+  try {
+    const querySnapshot = await getDocs(collection(db, "latihan"));
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      listContainer.innerHTML += `
+        <div class="card glass">
+          <div class="card-body">
+            <h3>${data.title}</h3>
+            <p>${data.question}</p>
+            <div class="card-footer">
+              <a href="${data.link || '#'}" target="_blank"><button class="btn-small btn-success">Mulai Main 🎲</button></a>
+              <div class="admin-actions admin-only">
+                <button class="btn-icon delete" onclick="deleteData('latihan', '${docSnap.id}')" title="Hapus Latihan">
+                  <i class="fa-solid fa-trash"></i> Hapus
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
-  });
+      `;
+    });
+  } catch (err) {
+    console.error("Gagal memuat latihan:", err);
+  }
 }
-
 // HAPUS DATA (ADMIN)
 window.deleteData = async (colName, id) => {
   if(confirm("Yakin ingin menghapus data ini?")) {
