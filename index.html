@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kelas Ceria - Platform Pembelajaran Interaktif</title>
+  <title>Kelas Inspiratif - Pembelajaran Interaktif</title>
   
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
@@ -63,8 +63,15 @@
       <div id="form-materi-container" class="admin-form glass hidden">
         <h3>Tambah / Edit Materi</h3>
         <input type="text" id="materi-title" placeholder="Judul Materi">
-        <input type="text" id="materi-img" placeholder="URL Gambar (Pisahkan dengan koma jika lebih dari 1 gambar)">
-        <small style="display:block; margin-bottom:10px; color:#555;">*Contoh: https://link1.com/a.jpg, https://link2.com/b.jpg</small>
+        
+        <!-- Input Pilih Gambar dari Komputer / HP (1-Klik Upload) -->
+        <label style="font-weight: bold; margin-top: 5px; font-size: 0.9rem;">Pilih Gambar dari File / Galeri (Bisa Pilih Banyak File):</label>
+        <input type="file" id="materi-file" accept="image/*" multiple style="padding: 8px; background: white;">
+
+        <!-- Input URL Manual (Opsional) -->
+        <label style="font-weight: bold; margin-top: 5px; font-size: 0.9rem;">Atau Tempelkan URL Gambar (Pisahkan Koma Jika > 1):</label>
+        <input type="text" id="materi-img" placeholder="https://link1.com/a.jpg, https://link2.com/b.jpg">
+
         <textarea id="materi-desc" placeholder="Isi / Rangkuman Materi Pembelajaran"></textarea>
         <button class="btn-primary" onclick="saveMateri()">Simpan Materi</button>
       </div>
