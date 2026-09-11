@@ -19,9 +19,9 @@ import {
 // 1. KONFIGURASI FIREBASE & ADMIN
 // ==========================================
 
-// Ganti nilai di bawah ini dengan Project Settings dari Firebase Console Anda!
+// Ganti nilai di bawah ini dengan Firebase Config asli Anda!
 const firebaseConfig = {
-   apiKey: "AIzaSyBJETCKPOLwFnVp8Q8Zev6tL_MJAsxAAJc",
+ apiKey: "AIzaSyBJETCKPOLwFnVp8Q8Zev6tL_MJAsxAAJc",
   authDomain: "kelas6b-bfc03.firebaseapp.com",
   databaseURL: "https://kelas6b-bfc03-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "kelas6b-bfc03",
@@ -30,12 +30,12 @@ const firebaseConfig = {
   appId: "1:632145539568:web:8a4b76f0dd5314cb97ed35"
 };
 
-// DAFTAR EMAIL ADMIN (Ganti dengan email Gmail Anda yang digunakan saat login)
+// DAFTAR EMAIL ADMIN (Ganti dengan Gmail aktif Anda)
 const ADMIN_EMAILS = [
-  "thisisart655@gmail.com" // <-- MASUKKAN EMAIL ANDA DI SINI (HURUF KECIL)
+  "thisisart655@gmail.com"
 ];
 
-// Inisialisasi Firebase App
+// Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -60,7 +60,7 @@ window.logout = () => {
   });
 };
 
-// Monitoring Status Login User (Deteksi Admin)
+// Monitoring Status Login
 onAuthStateChanged(auth, (user) => {
   const profileContainer = document.getElementById("userProfile");
   const heroLoginBtn = document.getElementById("heroLoginBtn");
@@ -69,19 +69,14 @@ onAuthStateChanged(auth, (user) => {
     const userEmail = user.email ? user.email.toLowerCase().trim() : "";
     const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase().trim()).includes(userEmail);
 
-    // Debugger Log di Console F12 Browser
-    console.log("=== STATUS LOGIN USER ===");
-    console.log("Email Terdeteksi:", userEmail);
-    console.log("Status Admin     :", isAdmin ? "YA (Admin)" : "TIDAK (Siswa)");
+    console.log("Status Login:", userEmail, "| Admin:", isAdmin);
 
-    // Jika Admin, tambahkan class 'is-admin' di body HTML
     if (isAdmin) {
       document.body.classList.add("is-admin");
     } else {
       document.body.classList.remove("is-admin");
     }
 
-    // Tampilan Profil Navbar
     if (profileContainer) {
       profileContainer.innerHTML = `
         <div style="display:flex; align-items:center; gap:10px;">
@@ -127,23 +122,21 @@ window.switchPage = (pageName) => {
   if (activeNav) activeNav.classList.add('active');
 };
 
-// Toggle Buka/Tutup Form Admin
 window.toggleAdminForm = (type) => {
   const container = document.getElementById(`form-${type}-container`);
   if (container) container.classList.toggle('hidden');
 };
 
 // ==========================================
-// 4. MANAGEMENT MATERI (FIRESTORE CRUD)
+// 4. MANAGEMENT MATERI
 // ==========================================
 
-// Simpan Materi Baru
 window.saveMateri = async () => {
   const title = document.getElementById('materi-title').value;
   const img = document.getElementById('materi-img').value;
   const desc = document.getElementById('materi-desc').value;
 
-  if (!title || !desc) return alert("Harap isi Judul dan Deskripsi Materi!");
+  if (!title || !desc) return alert("Harap isi Judul dan Deskripsi!");
 
   try {
     await addDoc(collection(db, "materi"), {
@@ -164,11 +157,9 @@ window.saveMateri = async () => {
   }
 };
 
-// Load Materi dari Database
 async function loadMateri() {
   const listContainer = document.getElementById("materi-list");
   if (!listContainer) return;
-  listContainer.innerHTML = "<p style='text-align:center;'>Memuat materi...</p>";
 
   try {
     const querySnapshot = await getDocs(collection(db, "materi"));
@@ -201,21 +192,19 @@ async function loadMateri() {
     });
   } catch (err) {
     console.error("Error load materi:", err);
-    listContainer.innerHTML = "<p style='text-align:center; color:red;'>Gagal memuat materi.</p>";
   }
 }
 
 // ==========================================
-// 5. MANAGEMENT LATIHAN (FIRESTORE CRUD)
+// 5. MANAGEMENT LATIHAN
 // ==========================================
 
-// Simpan Soal Latihan Baru
 window.saveLatihan = async () => {
   const title = document.getElementById('latihan-title').value;
   const question = document.getElementById('latihan-question').value;
   const link = document.getElementById('latihan-link').value;
 
-  if (!title || !question) return alert("Harap isi Judul dan Pertanyaan Latihan!");
+  if (!title || !question) return alert("Harap isi Judul dan Pertanyaan!");
 
   try {
     await addDoc(collection(db, "latihan"), {
@@ -236,11 +225,9 @@ window.saveLatihan = async () => {
   }
 };
 
-// Load Latihan dari Database
 async function loadLatihan() {
   const listContainer = document.getElementById("latihan-list");
   if (!listContainer) return;
-  listContainer.innerHTML = "<p style='text-align:center;'>Memuat latihan...</p>";
 
   try {
     const querySnapshot = await getDocs(collection(db, "latihan"));
@@ -274,16 +261,15 @@ async function loadLatihan() {
     });
   } catch (err) {
     console.error("Error load latihan:", err);
-    listContainer.innerHTML = "<p style='text-align:center; color:red;'>Gagal memuat latihan.</p>";
   }
 }
 
 // ==========================================
-// 6. HAPUS DATA (ADMIN ONLY)
+// 6. HAPUS DATA (ADMIN)
 // ==========================================
 
 window.deleteData = async (colName, id) => {
-  if (confirm("Yakin ingin menghapus data ini secara permanen?")) {
+  if (confirm("Yakin ingin menghapus data ini?")) {
     try {
       await deleteDoc(doc(db, colName, id));
       alert("Data berhasil dihapus!");
@@ -295,6 +281,6 @@ window.deleteData = async (colName, id) => {
   }
 };
 
-// Inisialisasi awal saat halaman selesai dimuat
+// Jalankan saat pertama dimuat
 loadMateri();
 loadLatihan();
