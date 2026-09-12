@@ -64,7 +64,7 @@ async function uploadFileToImgBB(file) {
   const formData = new FormData();
   formData.append("image", file);
 
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${a4effc02ebeca624eb55b122f22c8a25}`, {
     method: "POST",
     body: formData
   });
